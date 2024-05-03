@@ -1,0 +1,15 @@
+#Verifica quantas conexões estão em uso no momento:#
+watch "netstat -an | grep 5432 | grep ESTABELECIDA | wc -l"
+
+#Lista os processos do banco de dados (apenas ativos)#
+watch -n 1 "ps aux --sort=start_time | grep postgres | grep -v idle | grep -v pts"
+
+#Lista os processos do banco de dados (inclui inativos)#
+watch -n 1 "ps aux --sort=start_time | grep postgres | grep -v pts"
+
+#Lista todos os selects que estão rodando a mais tempo do que declarado (no exemplo, 3 segundos)#
+select now()-query_start as tempo, client_addr, procpid, current_query from pg_stat_activity where current_query <> '<IDLE>' and (now()-query_start) > '00:00:03'::time order by tempo desc ;
+
+#Lista todos os selects que estão rodando a mais tempo do que declarado (no exemplo, 5 segundos)#
+SELECT pid,datname as cliente,state,query as consulta,to_char((now() - pg_stat_activity.query_start),'HH24:MI:SS') AS duracao FROM pg_stat_activity WHERE (now() - pg_stat_activity.query_start) > interval '5 seconds' and state != 'idle';
+
